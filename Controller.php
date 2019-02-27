@@ -34,10 +34,15 @@ function signup($fields){
 	    exit;
 	}
 
-	$res = $mysqli->query("SELECT COUNT(*) from Organization_Info__c WHERE Hipaa_contact_email__c='" . $fields['Email'] . "'");
-	if ($res && $res->fetch_assoc()['COUNT(*)'] > 0){
-		echo json_encode(array('status' => 'danger','message' => 'Email is already registered!'));
-	    exit;
+	$query = "SELECT (SELECT COUNT(*) FROM lead__c WHERE Email__c='" . $fields['Email'] . "') AS lead, (SELECT COUNT(*) FROM Organization_Info__c WHERE Hipaa_contact_email__c='". $fields['Email'] . "') AS org";
+
+	$res = $mysqli->query($query);
+	
+	if ($res){
+		if ($res->fetch_assoc()['lead'] > 0 or $res->fetch_assoc()['org'] > 0){			
+			echo json_encode(array('status' => 'danger','message' => 'Email is already registered!'));
+	    	exit;
+		}
 	}
 
 	if ($fields['Mobile_Phone']=='') $fields['Mobile_Phone'] = '12345678';
